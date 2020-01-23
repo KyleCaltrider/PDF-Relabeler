@@ -15,8 +15,8 @@ from PyPDF2 import PdfFileReader
 def substitute_illegal_characters(text):
     return sub(r'[\(\):,/;*\]\[|\\\.]', r"_", text)
 
-def get_new_filename(fn, add_author):
-    with open(fn, "rb") as f:
+def get_new_filename(fn, directory, add_author):
+    with open(os.path.join(directory, fn), "rb") as f:
         reader = PdfFileReader(f, strict=False)
         # Get Title & Author
         info = reader.getDocumentInfo()
@@ -42,7 +42,7 @@ def get_filenames(directory):
         raise Exception(f"The directory, '{directory}', does not exist")
 
 def rename_file(directory, original_fn, new_fn):
-    if os.path.exists(directory) and os.path.exists(original_fn):
+    if os.path.exists(os.path.join(directory, original_fn)):
         old_path = os.path.join(directory, original_fn)
         new_path = os.path.join(directory, new_fn)
         os.rename(old_path, new_path)
@@ -51,7 +51,7 @@ def main():
     parser = ArgumentParser(description="Rename Some PDFs")
     parser.add_argument("--directory", type=str,
                         help="The directory to look for PDFs",
-                        default=os.join(os.getcwd(),"pdfs_to_rename"))
+                        default=os.path.join(os.getcwd(),"pdfs_to_rename"))
     parser.add_argument("--author",
                         type=bool, default=False,
                         help="Add Author To New Filename [True or False]")
@@ -59,10 +59,9 @@ def main():
     directory = args.directory
     add_author = args.author
     files_to_rename = get_filenames(directory)
-
     try:
         for fn in files_to_rename:
-            new_fn = get_new_filename(fn, add_author)
+            new_fn = get_new_filename(fn, directory, add_author)
             rename_file(directory, fn, new_fn)
     except:
         error = sys.exc_info()
